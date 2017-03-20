@@ -1,0 +1,22 @@
+{
+  "name": "ngp-nodejs",
+  "version": "1.0.0",
+  "description": "A sample docker container to run a nodejs application serving a health API request",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/microservices-today/ngp-nodejs.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/microservices-today/ngp-nodejs/issues"
+  },
+  "homepage": "https://github.com/microservices-today/ngp-nodejs#readme",
+  "dependencies": {
+    "restify": "^4.3.0"
+  }
+}
