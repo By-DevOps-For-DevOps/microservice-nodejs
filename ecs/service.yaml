@@ -14,14 +14,14 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     Properties:
       #The Family name will be used along with ECS_CLUSTER_NAME to prepare the stack name. It should be of Format abb-cdd-sd
-      Family: Nginx-BUILD_SCOPE
+      Family: NodeServer-BUILD_SCOPE
       ContainerDefinitions:
-      - Name: Nginx
+      - Name: NodeJs
         Cpu: '10'
         Essential: 'true'
         Image:
           "Fn::Sub":
-            - '${AccountId}.dkr.ecr.${Region}.amazonaws.com/nginx:TAG'
+            - '${AccountId}.dkr.ecr.${Region}.amazonaws.com/NodeServer:TAG'
             - { AccountId: { "Ref" : "AWS::AccountId" }, Region: { "Ref" : "AWS::Region" }}
         Memory: '128'
         PortMappings:
@@ -40,7 +40,7 @@ Resources:
   ALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: Nginx-ALB
+      Name: NodeServer-ALB
       Scheme: internet-facing
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
@@ -116,7 +116,7 @@ Resources:
       TaskDefinition:
         Ref: TaskDefinition
       LoadBalancers:
-      - ContainerName: Nginx
+      - ContainerName: NodeServer
         ContainerPort: '80'
         TargetGroupArn:
           Ref: ECSTG
