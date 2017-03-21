@@ -1,0 +1,15 @@
+version: 0.1
+
+phases:
+  build:
+    commands:
+      - . ./ecs/build.sh
+
+  post_build:
+    commands:
+      - . ./ecs/post_build.sh
+
+artifacts:
+  files:
+    - ecs/service.yaml
+    
