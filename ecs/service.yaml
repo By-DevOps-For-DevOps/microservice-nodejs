@@ -8,6 +8,18 @@ Parameters:
     Type: String
     Description: Name of the Environment.
     Default: ENVIRONMENT_NAME
+  ServiceMaxCapacity:
+    Description: 'The maximum number of simultaneous tasks, that you want to run on the cluster.'
+    Type: Number
+    Default: 4
+    ConstraintDescription: 'Must be >= 1'
+    MinValue: 1
+  ServiceMinCapacity:
+    Description: 'The minimum number of simultaneous tasks, that you want to run on the cluster.'
+    Type: Number
+    Default: 2
+    ConstraintDescription: 'Must be >= 1'
+    MinValue: 1
 
 Resources:
   TaskDefinition:
@@ -122,6 +134,148 @@ Resources:
           Ref: ECSTG
       Role:
         Ref: ECSServiceRole
+  ScalableTargetRole: # based on http://docs.aws.amazon.com/AmazonECS/latest/developerguide/autoscale_IAM_role.html
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: 'application-autoscaling.amazonaws.com'
+          Action: 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+      - PolicyName: ecs
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - 'ecs:DescribeServices'
+            - 'ecs:UpdateService'
+            Resource: '*'
+      - PolicyName: cloudwatch
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - 'cloudwatch:DescribeAlarms'
+            Resource: '*'
+  ScalableTarget:
+    Type: 'AWS::ApplicationAutoScaling::ScalableTarget'
+    Properties:
+      MaxCapacity: !Ref ServiceMaxCapacity
+      MinCapacity: !Ref ServiceMinCapacity
+      ResourceId: !Sub
+        - 'service/${Cluster}/${Service}'
+        - Cluster:
+            'Fn::ImportValue': !Sub '${EnvironmentName}-ECSCluster'
+          Service: !GetAtt 'Service.Name'
+      RoleARN: !GetAtt 'ScalableTargetRole.Arn'
+      ScalableDimension: 'ecs:service:DesiredCount'
+      ServiceNamespace: ecs
+  ScaleUpPolicy:
+    Type: 'AWS::ApplicationAutoScaling::ScalingPolicy'
+    Properties:
+      PolicyName: !Sub '${AWS::StackName}-scale-up'
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref ScalableTarget
+      StepScalingPolicyConfiguration: 
+        AdjustmentType: PercentChangeInCapacity
+        Cooldown: 300
+        MinAdjustmentMagnitude: 1
+        StepAdjustments:
+        - MetricIntervalLowerBound: 0
+          ScalingAdjustment: 25
+  ScaleDownPolicy:
+    Type: 'AWS::ApplicationAutoScaling::ScalingPolicy'
+    Properties:
+      PolicyName: !Sub '${AWS::StackName}-scale-down'
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref ScalableTarget
+      StepScalingPolicyConfiguration: 
+        AdjustmentType: PercentChangeInCapacity
+        Cooldown: 300
+        MinAdjustmentMagnitude: 1
+        StepAdjustments:
+        - MetricIntervalLowerBound: 0
+          ScalingAdjustment: -25
+  CPUUtilizationHighAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmDescription: 'Service is running out of CPU'
+      Namespace: 'AWS/ECS'
+      Dimensions:
+      - Name: ClusterName
+        Value:
+          Fn::ImportValue: !Sub '${EnvironmentName}-ECSCluster'
+      - Name: ServiceName
+        Value: !GetAtt 'Service.Name'
+      MetricName: CPUUtilization
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 80
+      AlarmActions:
+      - !Ref ScaleUpPolicy
+  CPUUtilizationLowAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmDescription: 'Service is wasting CPU'
+      Namespace: 'AWS/ECS'
+      Dimensions:
+      - Name: ClusterName
+        Value:
+          Fn::ImportValue: !Sub '${EnvironmentName}-ECSCluster'
+      - Name: ServiceName
+        Value: !GetAtt 'Service.Name'
+      MetricName: CPUUtilization
+      ComparisonOperator: LessThanThreshold
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 20
+      AlarmActions:
+      - !Ref ScaleDownPolicy
+  MemoryUtilizationHighAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: 'Service is running out of memory'
+      Namespace: AWS/ECS
+      Dimensions:
+      - Name: ClusterName
+        Value: 
+          Fn::ImportValue: !Sub '${EnvironmentName}-ECSCluster'
+      - Name: ServiceName
+        Value: !GetAtt 'Service.Name'
+      MetricName: MemoryUtilization
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: '1' 
+      Threshold: 80
+      AlarmActions: [!Ref 'ScaleUpPolicy']
+  MemoryUtilizationLowAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: 'Service is wasting memory'
+      Namespace: AWS/ECS
+      Dimensions:
+      - Name: ClusterName
+        Value: 
+          Fn::ImportValue: !Sub '${EnvironmentName}-ECSCluster'
+      - Name: ServiceName
+        Value: !GetAtt 'Service.Name'
+      MetricName: MemoryUtilization
+      ComparisonOperator: LessThanThreshold
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 1 
+      Threshold: 20
+      AlarmActions: [!Ref 'ScaleDownPolicy']
 Outputs:
   ecsservice:
     Value:
