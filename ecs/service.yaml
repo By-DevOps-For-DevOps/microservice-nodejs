@@ -20,25 +20,36 @@ Parameters:
     Default: 2
     ConstraintDescription: 'Must be >= 1'
     MinValue: 1
+  Email:
+    Type: String
+    Description: Email address to notify when an API activity has triggered an alarm
+    Default: EMAIL
 
 Resources:
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
       #The Family name will be used along with ECS_CLUSTER_NAME to prepare the stack name. It should be of Format abb-cdd-sd
-      Family: NodeServer-BUILD_SCOPE
+      Family: Nodejs-BUILD_SCOPE
       ContainerDefinitions:
-      - Name: NodeJs
-        Cpu: '10'
+      - Name: nodejs-app
+        Cpu: '64'
         Essential: 'true'
         Image:
           "Fn::Sub":
-            - '${AccountId}.dkr.ecr.${Region}.amazonaws.com/NodeServer:TAG'
+            - '${AccountId}.dkr.ecr.${Region}.amazonaws.com/nodejs-app:TAG'
             - { AccountId: { "Ref" : "AWS::AccountId" }, Region: { "Ref" : "AWS::Region" }}
         Memory: '128'
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group:
+              Ref: CloudwatchLogsGroup
+            awslogs-region:
+              Ref: AWS::Region
+            awslogs-stream-prefix: nodejs-app
         PortMappings:
-        - ContainerPort: 80
-          HostPort: 80
+        - ContainerPort: 9000
   ECSServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -49,10 +60,33 @@ Resources:
             Service: [ecs.amazonaws.com]
           Action: ['sts:AssumeRole']
       Path: /
+  ECSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ECS Security Group
+      VpcId:
+        Fn::ImportValue:
+           Fn::Sub:  "${EnvironmentName}-VPC"
+      SecurityGroupIngress:
+        # Only allow inbound access to ECS from the same VPC
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+  CloudwatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Sub: "ECSLogGroup-${AWS::StackName}"
+      RetentionInDays: 14
   ALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: NodeServer-ALB
+      Name: Nodejs-ALB
       Scheme: internet-facing
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
@@ -62,7 +96,10 @@ Resources:
             Fn::Sub: "${EnvironmentName}-PublicSubnet1"
         - Fn::ImportValue:
             Fn::Sub: "${EnvironmentName}-PublicSubnet2"
-
+      SecurityGroups:
+      - Ref: ECSSecurityGroup
+      - Fn::ImportValue:
+          Fn::Sub: "${EnvironmentName}-ECSHostSecurityGroup"
   ALBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     DependsOn: ECSServiceRole
@@ -94,7 +131,7 @@ Resources:
     DependsOn: ALB
     Properties:
       HealthCheckIntervalSeconds: 10
-      HealthCheckPath: /
+      HealthCheckPath: /health
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
@@ -104,7 +141,7 @@ Resources:
       UnhealthyThresholdCount: 2
       VpcId:
         Fn::ImportValue:
-           Fn::Sub:  "${EnvironmentName}-VPC"
+           Fn::Sub: "${EnvironmentName}-VPC"
   ECSServicePolicy:
     Type: "AWS::IAM::Policy"
     Properties:
@@ -119,17 +156,17 @@ Resources:
       - Ref: ECSServiceRole
   Service:
     Type: AWS::ECS::Service
-    DependsOn: ECSServicePolicy
+    DependsOn: ALBListener
     Properties:
       Cluster:
         Fn::ImportValue:
           Fn::Sub: "${EnvironmentName}-ECSCluster"
-      DesiredCount: '1'
+      DesiredCount: '2'
       TaskDefinition:
         Ref: TaskDefinition
       LoadBalancers:
-      - ContainerName: NodeServer
-        ContainerPort: '80'
+      - ContainerName: nodejs-app
+        ContainerPort: '9000'
         TargetGroupArn:
           Ref: ECSTG
       Role:
@@ -276,7 +313,129 @@ Resources:
       EvaluationPeriods: 1 
       Threshold: 20
       AlarmActions: [!Ref 'ScaleDownPolicy']
+
+  # Filters all logs for the word Error
+  AppErrorsLogsFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: Error
+      LogGroupName:
+        Ref: CloudwatchLogsGroup
+      MetricTransformations:
+      - MetricName: AppErrors
+        MetricNamespace:
+          Ref: 'AWS::StackName'
+        MetricValue: 1
+  AppErrorsAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmDescription: 'Application errors in logs'
+      Namespace:
+        Ref: 'AWS::StackName'
+      MetricName: AppErrors
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+      - Ref: AlarmNotificationTopic
+
+  ALB500sAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ECS Nodejs - 5XX Count
+      EvaluationPeriods: '1'
+      Statistic: Sum
+      Threshold: '500'
+      AlarmDescription: Alarm if our ALB generates too many HTTP 500s.
+      Period: '300'
+      AlarmActions:
+      - Ref: AlarmNotificationTopic
+      Namespace: AWS/ApplicationELB
+      Dimensions:
+      - Name: LoadBalancer
+        Value:
+          "Fn::GetAtt": [ ALB, LoadBalancerFullName ]
+      - Name: TargetGroup
+        Value:
+          "Fn::GetAtt": [ ECSTG, TargetGroupFullName ]
+      ComparisonOperator: GreaterThanThreshold
+      MetricName: HTTPCode_Target_5XX_Count
+  HealthyHostAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ECS Nodejs - Healthy Hosts
+      EvaluationPeriods: '1'
+      Statistic: Maximum
+      Threshold: '1'
+      AlarmDescription: Alarm if the number of healthy hosts is less than or equal to 1.
+      Period: '300'
+      AlarmActions:
+      - Ref: "AlarmNotificationTopic"
+      Namespace: AWS/ApplicationELB
+      Dimensions:
+      - Name: LoadBalancer
+        Value:
+          "Fn::GetAtt": [ ALB, LoadBalancerFullName ]
+      - Name: TargetGroup
+        Value:
+          "Fn::GetAtt": [ ECSTG, TargetGroupFullName ]
+      ComparisonOperator: LessThanOrEqualToThreshold
+      MetricName: HealthyHostCount
+  UnhealthyHostAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ECS Nodejs - Unhealthy Hosts
+      EvaluationPeriods: '5'
+      Statistic: Maximum
+      Threshold: '1'
+      AlarmDescription: Alarm if the number of unhealthy hosts is greater than or equal to 1.
+      Period: '300'
+      AlarmActions:
+      - Ref: "AlarmNotificationTopic"
+      Namespace: AWS/ApplicationELB
+      Dimensions:
+      - Name: LoadBalancer
+        Value:
+          "Fn::GetAtt": [ ALB, LoadBalancerFullName ]
+      - Name: TargetGroup
+        Value:
+          "Fn::GetAtt": [ ECSTG, TargetGroupFullName ]
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      MetricName: UnHealthyHostCount
+  LatencyAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ECS Nodejs - Average Latency
+      EvaluationPeriods: '1'
+      Statistic: Average
+      Threshold: '2'
+      AlarmDescription: Alarm if the average latency is greater than or equal to 2.
+      Period: '300'
+      AlarmActions:
+      - Ref: "AlarmNotificationTopic"
+      Namespace: AWS/ApplicationELB
+      Dimensions:
+      - Name: LoadBalancer
+        Value:
+          "Fn::GetAtt": [ ALB, LoadBalancerFullName ]
+      - Name: TargetGroup
+        Value:
+          "Fn::GetAtt": [ ECSTG, TargetGroupFullName ]
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      MetricName: TargetResponseTime
+  AlarmNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+        - Endpoint: "EMAIL"
+          Protocol: email
+      TopicName: nodejs-app-topic
 Outputs:
   ecsservice:
     Value:
       Ref: Service
+  AppALBDNS:
+    Value:
+      "Fn::GetAtt": [ ALB, DNSName ]
