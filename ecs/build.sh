@@ -5,7 +5,7 @@ if [ "$DEPLOY_ENVIRONMENT" != "production" ]; then
     docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
     TAG=$(cat docker.tag)
 else
-    TAG=$RELEASE_VERSION
+    TAG=${RELEASE_VERSION}
 fi
 
 sed -i "s@TAG@$TAG@g" ecs/service.yaml
@@ -13,3 +13,5 @@ sed -i "s#EMAIL#$EMAIL#g" ecs/service.yaml
 sed -i "s@ENVIRONMENT_NAME@$ENVIRONMENT_NAME@g" ecs/service.yaml
 sed -i "s@DOCKER_IMAGE_URI@$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$TAG@g" ecs/service.yaml
 sed -i "s@BUILD_SCOPE@$BUILD_SCOPE@g" ecs/service.yaml
+sed -i "s@ECS_REPOSITORY_NAME@$ECR_NAME@g" ecs/service.yaml
+sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
