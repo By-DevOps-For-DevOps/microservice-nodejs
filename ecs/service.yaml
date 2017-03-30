@@ -24,6 +24,10 @@ Parameters:
     Type: String
     Description: Email address to notify when an API activity has triggered an alarm
     Default: EMAIL
+  ECSRespositoryName:
+    Type: String
+    Description: 'ECS Repository Name'
+    Default: ECS_REPOSITORY_NAME
 
 Resources:
   TaskDefinition:
@@ -37,7 +41,7 @@ Resources:
         Essential: 'true'
         Image:
           "Fn::Sub":
-            - '${AccountId}.dkr.ecr.${Region}.amazonaws.com/nodejs-app:TAG'
+            - '${AccountId}.dkr.ecr.${Region}.amazonaws.com/${ECSRespositoryName}:TAG'
             - { AccountId: { "Ref" : "AWS::AccountId" }, Region: { "Ref" : "AWS::Region" }}
         Memory: '128'
         LogConfiguration:
@@ -86,7 +90,7 @@ Resources:
   ALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: Nodejs-ALB
+      Name: ${EnvironmentName}-Nodejs-ALB
       Scheme: internet-facing
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
@@ -156,7 +160,10 @@ Resources:
       - Ref: ECSServiceRole
   Service:
     Type: AWS::ECS::Service
-    DependsOn: ALBListener
+    DependsOn:
+      - ECSServicePolicy
+      - ALB
+      - ALBListener
     Properties:
       Cluster:
         Fn::ImportValue:
