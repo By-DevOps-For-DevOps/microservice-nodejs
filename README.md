@@ -12,7 +12,7 @@ This is a sample nodejs application that can be run as a docker container. Is is
 The application returns a ``` { status: 'ok'} ``` at ```localhost:9000/health```
 
 
-#Note
+#Notes
 
 These are insfrastructure specific information for the application.
 
