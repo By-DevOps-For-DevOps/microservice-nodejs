@@ -21,3 +21,6 @@ These are insfrastructure specific information for the application.
 3. Public Access through ELB: True
 4. AWS Log Prefix: ngp-node-server
 5. Mandatory Environment Variables: 
+6. Behind API-Gateway: False
+7. Dependent Applications:
+8. Consumer only: False
