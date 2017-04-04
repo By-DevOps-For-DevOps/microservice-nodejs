@@ -10,3 +10,14 @@ This is a sample nodejs application that can be run as a docker container. Is is
 ### Health Check
 
 The application returns a ``` { status: 'ok'} ``` at ```localhost:9000/health```
+
+
+#Note
+
+These are insfrastructure specific information for the application.
+
+1. Application Ports: 9000
+2. Health check: 9000/health
+3. Public Access through ELB: True
+4. AWS Log Prefix: ngp-node-server
+5. Mandatory Environment Variables: 
