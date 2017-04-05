@@ -12,15 +12,17 @@ This is a sample nodejs application that can be run as a docker container. Is is
 The application returns a ``` { status: 'ok'} ``` at ```localhost:9000/health```
 
 
-#Notes
+# Notes
 
 These are insfrastructure specific information for the application.
 
-1. Application Ports: 9000
-2. Health check: 9000/health
-3. Public Access through ELB: True
-4. AWS Log Prefix: ngp-node-server
-5. Mandatory Environment Variables: 
-6. Behind API-Gateway: False
-7. Dependent Applications:
-8. Consumer only: False
+| Question  | Answer |
+| ------------- | ------------- |
+| Application Ports  | 900  |
+| Health check  | `9000/health`  |
+| Public Access through ELB  |  True  |
+| AWS Log Prefix | `ngp-node-server` | 
+| Mandatory Environment Variables |  | 
+| Behind API-Gateway | False | 
+| Dependent Applications | False | 
+| Consumer only | False | 
