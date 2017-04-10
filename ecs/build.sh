@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
-if [ "$DEPLOY_ENVIRONMENT" != "production" ]; then
+if [ "$DEPLOY_ENVIRONMENT" != "production" ] ; then
     echo -n "$CODEBUILD_BUILD_ID" | sed "s/.*:\([[:xdigit:]]\{7\}\).*/\1/" > build.id
-    echo -n "$RELEASE_VERSION-$BUILD_SCOPE-$(cat ./build.id)" > docker.tag
+    echo -n "$TAG_NAME-$BUILD_SCOPE-$(cat ./build.id)" > docker.tag
+    docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
+    TAG=$(cat docker.tag)
+elif [ "$DEPLOY_ENVIRONMENT" != "staging" ] ; then
+    echo -n "$RELEASE_VERSION-$BUILD_SCOPE" > docker.tag
     docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
     TAG=$(cat docker.tag)
 else
-    TAG=${RELEASE_VERSION}
+    curl https://github.com/${GITHUB_USER}/${GITHUB_PROJECT}/releases/latest?access_token=${GITHUB_TOKEN} | grep -Eo "([0-9]\.*)+" > docker.tag
+    TAG=$(cat docker.tag)
 fi
 
 sed -i "s@TAG@$TAG@g" ecs/service.yaml
