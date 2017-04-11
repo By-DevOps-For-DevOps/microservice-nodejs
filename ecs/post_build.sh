@@ -5,7 +5,7 @@ if [ "$DEPLOY_ENVIRONMENT" != 'production' ] ; then
     $(aws ecr get-login --region $AWS_REGION)
     echo ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./docker.tag)
     docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./docker.tag)
-elif [ "$DEPLOY_ENVIRONMENT" = 'staging' ];
+elif [ "$DEPLOY_ENVIRONMENT" = 'staging' ]; then
     $(aws ecr get-login --region $AWS_REGION)
     echo ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./docker.tag)
     docker tag ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./docker.tag) \
