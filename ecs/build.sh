@@ -5,7 +5,7 @@ if [ "$DEPLOY_ENVIRONMENT" != "production" ] ; then
     docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
     TAG=$(cat docker.tag)
 elif [ "$DEPLOY_ENVIRONMENT" != "staging" ] ; then
-    echo -n "$RELEASE_VERSION-$BUILD_SCOPE" > docker.tag
+    echo -n "$BUILD_SCOPE" > docker.tag
     docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
     TAG=$(cat docker.tag)
 else
