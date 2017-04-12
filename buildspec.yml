@@ -12,4 +12,5 @@ phases:
 artifacts:
   files:
     - ecs/service.yaml
+    - build.id
     

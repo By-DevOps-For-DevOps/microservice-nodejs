@@ -8,7 +8,14 @@ if [ "$DEPLOY_ENVIRONMENT" = "development" ] || \
     docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
     TAG=$(cat docker.tag)
 elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
-    git
+    GITHUB_TOKEN=${GITHUB_TOKEN}
+    git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
+    cd ${GITHUB_PROJECT}
+    git checkout master-test
+    git merge staging
+    git tag -a ${RELEASE_PLAN}
+    git push origin master-test 
+    cat build.id
 else
     curl https://github.com/${GITHUB_USER}/${GITHUB_PROJECT}/releases/latest?access_token=${GITHUB_TOKEN} | grep -Eo "([0-9]\.*)+" > docker.tag
     TAG=$(cat docker.tag)
