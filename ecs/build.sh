@@ -17,13 +17,13 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
     cd ${GITHUB_REPO}
     git checkout staging
-    git tag ${RELEASE_PLAN}-$(cat ../docker.tag)-beta
+    git tag $(cat ../docker.tag)-beta
     git push --tags
     git checkout master-test
     git merge staging
     git push origin master-test
-    API_JSON=$(printf '{"tag_name": "v%s","target_commitish": "master",
-    "name": "v%s","body": "Release of version %s",
+    API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
+    "name": "%s","body": "Release of version %s",
     "draft": false,"prerelease": false}' $RELEASE_PLAN $RELEASE_PLAN $RELEASE_PLAN)
     echo $API_JSON
     curl --data "$API_JSON" https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}
