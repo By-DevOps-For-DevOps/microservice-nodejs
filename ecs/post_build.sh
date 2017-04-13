@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
-if [ "$DEPLOY_ENVIRONMENT" != 'production' ] ; then
+if [ "$DEPLOY_ENVIRONMENT" = "development" ] || \
+   [ "$DEPLOY_ENVIRONMENT" = "staging" ] || \
+   [ "$DEPLOY_ENVIRONMENT" = "feature" ] || \
+   [ "$DEPLOY_ENVIRONMENT" = "hotfix" ]; then
     docker images
     export AWS_DEFAULT_REGION=$AWS_REGION
     $(aws ecr get-login --region $AWS_REGION)
     echo ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./docker.tag)
-    docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./docker.tag)
-elif [ "$DEPLOY_ENVIRONMENT" = 'staging' ]; then
-    $(aws ecr get-login --region $AWS_REGION)
-    echo ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./docker.tag)
-    docker tag ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./docker.tag) \
-        ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:candidate
-    docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./docker.tag) \
-        ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:candidate
+    # docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./docker.tag)
 else
     $(aws ecr get-login --registry-ids "$SOURCE_AWS_ACCOUNT_ID" --region $SOURCE_AWS_REGION)
     docker pull ${SOURCE_AWS_ACCOUNT_ID}.dkr.ecr.${SOURCE_AWS_REGION}.amazonaws.com/${ECR_NAME}:candidate

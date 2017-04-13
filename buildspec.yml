@@ -11,6 +11,7 @@ phases:
 
 artifacts:
   files:
-    - ecs/service.yaml
-    - build.id
+    - ecs
+    - buidspec.yml
+    - docker.tag
     
