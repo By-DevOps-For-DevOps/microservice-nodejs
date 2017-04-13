@@ -12,7 +12,7 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
     cd ${GITHUB_REPO}
     git checkout staging
-    git tag $(cat ../docker.tag)
+    git tag ${RELEASE_PLAN}-$(cat ../docker.tag)-beta
     git push origin staging --follow-tags
     git checkout master-test
     git merge staging
