@@ -29,12 +29,15 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     curl --data "$API_JSON" https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}
 
 else
+    echo "Entering Production Build"
     GITHUB_TOKEN=${GITHUB_TOKEN}
     git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
     cd ${GITHUB_REPO}
     git checkout staging
-    TAG=$(git describe --tags --abbrev=0)
-    echo $TAG > ../docker.tag
+    STAGE_TAG=$(git describe --tags --abbrev=0)
+    TAG=$(curl https://github.com/${GITHUB_USER}/${GITHUB_PROJECT}/releases/latest?access_token=${GITHUB_TOKEN} | grep -Eo "([0-9]\.*)+")
+    echo $STAGE_TAG > ../stage.tag
+    echo $TAG > ../prod.tag
 fi
 
 sed -i "s@TAG@$TAG@g" ecs/service.yaml
