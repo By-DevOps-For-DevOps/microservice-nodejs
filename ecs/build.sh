@@ -52,6 +52,14 @@ sed -i "s@BUILD_SCOPE@$BUILD_SCOPE@g" ecs/service.yaml
 sed -i "s@ECS_REPOSITORY_NAME@$ECR_NAME@g" ecs/service.yaml
 sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
 
-touch env.yaml
-aws s3 cp s3://${CODE_BUILD_S3_BUCKET}/${CODE_BUILD_S3_KEY} env.yaml
-perl -i -pe 's/ENVIRONMENT_VARIABLES/`cat env.yaml`/e' ecs/service.yaml
+
+if [ ! -z $ENV_VARIABLES_S3_BUCKET ] && [ ! -z $ENV_VARIABLES_S3_KEY ]; then
+    echo "Downloading ${ENV_VARIABLES_S3_KEY} form  ${ENV_VARIABLES_S3_BUCKET} ..."
+    aws s3 cp s3://${ENV_VARIABLES_S3_BUCKET}/${ENV_VARIABLES_S3_KEY} env.yaml
+    if [ $? == 1 ]; then
+        exit 1;
+    fi
+    perl -i -pe 's/ENVIRONMENT_VARIABLES/`cat env.yaml`/e' ecs/service.yaml
+else
+    perl -i -pe 's/ENVIRONMENT_VARIABLES//e' ecs/service.yaml
+fi
