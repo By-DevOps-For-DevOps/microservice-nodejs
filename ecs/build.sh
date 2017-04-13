@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
+echo -n "$CODEBUILD_BUILD_ID" | sed "s/.*:\([[:xdigit:]]\{7\}\).*/\1/" > build.id
 if [ "$DEPLOY_ENVIRONMENT" = "development" ] || \
-   [ "$DEPLOY_ENVIRONMENT" = "staging" ] || \
    [ "$DEPLOY_ENVIRONMENT" = "feature" ] || \
-   [ "$DEPLOY_ENVIRONMENT" = "hotfix" ]; then
-    echo -n "$CODEBUILD_BUILD_ID" | sed "s/.*:\([[:xdigit:]]\{7\}\).*/\1/" > build.id
+   [ "$DEPLOY_ENVIRONMENT" = "hotfix" ]; then    
     echo -n "$TAG_NAME-$BUILD_SCOPE-$(cat ./build.id)" > docker.tag
+    docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
+    TAG=$(cat docker.tag)
+elif [ "$DEPLOY_ENVIRONMENT" = "staging" ] ; then
+    echo -n "${RELEASE_PLAN}-$BUILD_SCOPE-$(cat ./build.id)" > docker.tag
     # docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
     TAG=$(cat docker.tag)
 elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
@@ -18,11 +21,17 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     git push --tags
     git checkout master-test
     git merge staging
-    git tag -a ${RELEASE_PLAN} -m ${RELEASE_PLAN}
-    git push origin master-test --follow-tags
+    git push origin master-test
+    curl --data '{"tag_name": "${RELEASE_PLAN}","target_commitish": "master"\
+    ,"name": "v1.0.0","body": "Release of version ${RELEASE_PLAN}",\
+    "draft": false,"prerelease": false}' https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}
+
 else
-    curl https://github.com/${GITHUB_USER}/${GITHUB_PROJECT}/releases/latest?access_token=${GITHUB_TOKEN} | grep -Eo "([0-9]\.*)+" > docker.tag
-    TAG=$(cat docker.tag)
+    GITHUB_TOKEN=${GITHUB_TOKEN}
+    git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
+    cd ${GITHUB_REPO}
+    git checkout staging
+    TAG=$(git describe --tags --abbrev=0)
 fi
 
 sed -i "s@TAG@$TAG@g" ecs/service.yaml
