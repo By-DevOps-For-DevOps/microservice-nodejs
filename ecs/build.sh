@@ -38,6 +38,8 @@ else
     TAG=$(curl https://github.com/${GITHUB_USER}/${GITHUB_PROJECT}/releases/latest?access_token=${GITHUB_TOKEN} | grep -Eo "([0-9]\.*)+")
     echo $STAGE_TAG > ../stage.tag
     echo $TAG > ../prod.tag
+    cat ../stage.tag
+    cat ../prod.tag
 fi
 
 sed -i "s@TAG@$TAG@g" ecs/service.yaml
