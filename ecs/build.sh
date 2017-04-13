@@ -10,12 +10,14 @@ if [ "$DEPLOY_ENVIRONMENT" = "development" ] || \
 elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     GITHUB_TOKEN=${GITHUB_TOKEN}
     git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
-    cd ${GITHUB_PROJECT}
-    git checkout master-test
+    cd ${GITHUB_REPO}
+    git checkout staging
+    git tag $(cat ./docker.tag)
+    git push origin staging --follow-tags
+    git checkout master
     git merge staging
-    git tag -a ${RELEASE_PLAN}
-    git push origin master-test 
-    cat build.id
+    git tag -a ${RELEASE_PLAN} -m ${RELEASE_PLAN}
+    git push origin master-test
 else
     curl https://github.com/${GITHUB_USER}/${GITHUB_PROJECT}/releases/latest?access_token=${GITHUB_TOKEN} | grep -Eo "([0-9]\.*)+" > docker.tag
     TAG=$(cat docker.tag)
