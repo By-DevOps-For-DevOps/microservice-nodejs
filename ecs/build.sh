@@ -8,7 +8,7 @@ if [ "$DEPLOY_ENVIRONMENT" = "development" ] || \
     TAG=$(cat docker.tag)
 elif [ "$DEPLOY_ENVIRONMENT" = "staging" ] ; then
     echo -n "${RELEASE_PLAN}-$BUILD_SCOPE-$(cat ./build.id)" > docker.tag
-    # docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
+    docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
     TAG=$(cat docker.tag)
 elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     GITHUB_TOKEN=${GITHUB_TOKEN}
@@ -34,6 +34,7 @@ else
     cd ${GITHUB_REPO}
     git checkout staging
     TAG=$(git describe --tags --abbrev=0)
+    echo $TAG > ../docker.tag
 fi
 
 sed -i "s@TAG@$TAG@g" ecs/service.yaml
