@@ -13,11 +13,11 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     cd ${GITHUB_REPO}
     git checkout staging
     git tag ${RELEASE_PLAN}-$(cat ../docker.tag)-beta
-    git push origin staging --follow-tags
+    git push --tags
     git checkout master-test
     git merge staging
     git tag -a ${RELEASE_PLAN} -m ${RELEASE_PLAN}
-    git push origin master-test
+    git push origin master-test --follow-tags
 else
     curl https://github.com/${GITHUB_USER}/${GITHUB_PROJECT}/releases/latest?access_token=${GITHUB_TOKEN} | grep -Eo "([0-9]\.*)+" > docker.tag
     TAG=$(cat docker.tag)
