@@ -26,3 +26,19 @@ These are insfrastructure specific information for the application.
 | Behind API-Gateway | False | 
 | Dependent Applications | False | 
 | Consumer only | False | 
+
+
+### App specific environment variables
+App specific environment variables can be pass to codepipeliene by specifying the s3 bucket and file name which contain the environment variables.
+- First line should be a newline
+- Variables should be in key value format
+- Keep the tab spaces same as example file
+Eg:
+```
+        
+        Environment:
+        - Name: NODE_ENV
+          Value: 6.0
+```
+
+(Example file)[./code_build_env.yaml]
