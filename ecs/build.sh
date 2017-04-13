@@ -9,6 +9,8 @@ if [ "$DEPLOY_ENVIRONMENT" = "development" ] || \
     TAG=$(cat docker.tag)
 elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     GITHUB_TOKEN=${GITHUB_TOKEN}
+    git config --global user.email ${GITHUB_EMAIL}
+    git config --global user.name ${GITHUB_USERNAME}
     git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
     cd ${GITHUB_REPO}
     git checkout staging
