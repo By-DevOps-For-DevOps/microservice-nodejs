@@ -35,7 +35,7 @@ else
     cd ${GITHUB_REPO}
     git checkout staging
     STAGE_TAG=$(git describe --tags --abbrev=0)
-    TAG=$(curl https://api.github.com/${GITHUB_USER}/${GITHUB_PROJECT}/releases/latest?access_token=${GITHUB_TOKEN} | grep tag_name | grep -Eo "([0-9]\.*)+")
+    TAG=$(curl https://api.github.com/repos/${GITHUB_USER}/${GITHUB_PROJECT}/releases/latest?access_token=${GITHUB_TOKEN} | grep tag_name | grep -Eo "([0-9]\.*)+")
     echo $STAGE_TAG > ../stage.tag
     echo $TAG > ../prod.tag
     cat ../stage.tag
