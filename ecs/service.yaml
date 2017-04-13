@@ -54,6 +54,7 @@ Resources:
             awslogs-stream-prefix: nodejs-app
         PortMappings:
         - ContainerPort: 9000
+        ENVIRONMENT_VARIABLES
   ECSServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -90,8 +91,7 @@ Resources:
   ALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: 
-        Fn::Sub: ${EnvironmentName}-Nodejs-ALB
+      Name: !Sub '${EnvironmentName}-Nodejs-ALB'
       Scheme: internet-facing
       LoadBalancerAttributes:
         - Key: idle_timeout.timeout_seconds
@@ -140,7 +140,7 @@ Resources:
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
-      Name: ECSTG
+      Name: !Sub 'ECSTG-${EnvironmentName}'
       Port: 80
       Protocol: HTTP
       UnhealthyThresholdCount: 2
@@ -439,7 +439,7 @@ Resources:
       Subscription:
         - Endpoint: "EMAIL"
           Protocol: email
-      TopicName: nodejs-app-topic
+      TopicName: !Sub 'nodejs-app-topic-${EnvironmentName}'
 Outputs:
   ecsservice:
     Value:

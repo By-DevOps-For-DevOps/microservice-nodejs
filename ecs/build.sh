@@ -51,3 +51,7 @@ sed -i "s@DOCKER_IMAGE_URI@$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$EC
 sed -i "s@BUILD_SCOPE@$BUILD_SCOPE@g" ecs/service.yaml
 sed -i "s@ECS_REPOSITORY_NAME@$ECR_NAME@g" ecs/service.yaml
 sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
+
+touch env.yaml
+aws s3 cp s3://${CODE_BUILD_S3_BUCKET}/${CODE_BUILD_S3_KEY} env.yaml
+perl -i -pe 's/ENVIRONMENT_VARIABLES/`cat env.yaml`/e' ecs/service.yaml
