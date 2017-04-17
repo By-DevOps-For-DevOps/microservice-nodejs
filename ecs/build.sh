@@ -19,9 +19,9 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     git checkout staging
     git tag $(cat ../docker.tag)
     git push --tags
-    git checkout master-test
+    git checkout master
     git merge staging
-    git push origin master-test
+    git push origin master
     API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
     "name": "%s","body": "Release of version %s",
     "draft": false,"prerelease": false}' $RELEASE_PLAN $RELEASE_PLAN $RELEASE_PLAN)
