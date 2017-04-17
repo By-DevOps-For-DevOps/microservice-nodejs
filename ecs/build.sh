@@ -42,6 +42,7 @@ else
     cat ../prod.tag
 fi
 
+cd ..
 sed -i "s@TAG@$TAG@g" ecs/service.yaml
 sed -i "s#EMAIL#$EMAIL#g" ecs/service.yaml
 sed -i "s@ENVIRONMENT_NAME@$ENVIRONMENT_NAME@g" ecs/service.yaml
