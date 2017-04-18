@@ -18,6 +18,7 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     cd ${GITHUB_REPO}
     git checkout staging
     printf %q "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"- %s%n%b\n")"> ./commits
+    cat ./commits
     git tag $(cat ../docker.tag)
     git push --tags
     git checkout master
