@@ -22,9 +22,10 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     git checkout master
     git merge staging
     git push origin master
+    git log `git describe --tags --abbrev=0`..HEAD --oneline > ./commits
     API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
-    "name": "%s","body": "Release of version %s",
-    "draft": false,"prerelease": false}' $RELEASE_PLAN $RELEASE_PLAN $RELEASE_PLAN)
+    "name": "%s","body": "Release of version %s \n %s",
+    "draft": false,"prerelease": false}' $RELEASE_PLAN $RELEASE_PLAN $RELEASE_PLAN $(cat ./commits))
     echo $API_JSON
     curl --data "$API_JSON" https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}
 
