@@ -17,14 +17,14 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
     cd ${GITHUB_REPO}
     git checkout staging
+    printf %q "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"- %s%n%b\n")"> ./commits
     git tag $(cat ../docker.tag)
     git push --tags
     git checkout master
     git merge staging
     git push origin master
-    git log `git describe --tags --abbrev=0`..HEAD --oneline > ./commits
     API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
-    "name": "%s","body": "Release of version %s \n %s",
+    "name": "%s","body": "%s",
     "draft": false,"prerelease": false}' $RELEASE_PLAN $RELEASE_PLAN $RELEASE_PLAN $(cat ./commits))
     echo $API_JSON
     curl --data "$API_JSON" https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}
@@ -55,3 +55,9 @@ sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
 touch env.yaml
 aws s3 cp s3://${CODE_BUILD_S3_BUCKET}/${CODE_BUILD_S3_KEY} env.yaml
 perl -i -pe 's/ENVIRONMENT_VARIABLES/`cat env.yaml`/e' ecs/service.yaml
+
+API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
+    "name": "%s","body": "' $RELEASE_PLAN $RELEASE_PLAN
+    cat ./commits
+    printf '",
+    "draft": false,"prerelease": false}')
