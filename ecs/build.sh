@@ -51,9 +51,3 @@ sed -i "s@DOCKER_IMAGE_URI@$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$EC
 sed -i "s@BUILD_SCOPE@$BUILD_SCOPE@g" ecs/service.yaml
 sed -i "s@ECS_REPOSITORY_NAME@$ECR_NAME@g" ecs/service.yaml
 sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
-
-API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
-    "name": "%s","body": "' $RELEASE_PLAN $RELEASE_PLAN
-    cat ./commits
-    printf '",
-    "draft": false,"prerelease": false}')
