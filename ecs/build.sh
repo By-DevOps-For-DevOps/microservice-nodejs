@@ -55,9 +55,3 @@ sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
 touch env.yaml
 aws s3 cp s3://${CODE_BUILD_S3_BUCKET}/${CODE_BUILD_S3_KEY} env.yaml
 perl -i -pe 's/ENVIRONMENT_VARIABLES/`cat env.yaml`/e' ecs/service.yaml
-
-API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
-    "name": "%s","body": "' $RELEASE_PLAN $RELEASE_PLAN
-    cat ./commits
-    printf '",
-    "draft": false,"prerelease": false}')
