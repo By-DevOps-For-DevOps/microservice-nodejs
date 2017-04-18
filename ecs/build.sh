@@ -17,14 +17,14 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
     cd ${GITHUB_REPO}
     git checkout staging
+    printf "%s" $(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"- %s%n%b\n")> ./commits
     git tag $(cat ../docker.tag)
     git push --tags
     git checkout master
     git merge staging
     git push origin master
-    git log `git describe --tags --abbrev=0`..HEAD --oneline > ./commits
     API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
-    "name": "%s","body": "Release of version %s \n %s",
+    "name": "%s","body": "%s",
     "draft": false,"prerelease": false}' $RELEASE_PLAN $RELEASE_PLAN $RELEASE_PLAN $(cat ./commits))
     echo $API_JSON
     curl --data "$API_JSON" https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}
@@ -51,3 +51,9 @@ sed -i "s@DOCKER_IMAGE_URI@$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$EC
 sed -i "s@BUILD_SCOPE@$BUILD_SCOPE@g" ecs/service.yaml
 sed -i "s@ECS_REPOSITORY_NAME@$ECR_NAME@g" ecs/service.yaml
 sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
+
+API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
+    "name": "%s","body": "' $RELEASE_PLAN $RELEASE_PLAN
+    cat ./commits
+    printf '",
+    "draft": false,"prerelease": false}')
