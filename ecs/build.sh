@@ -17,7 +17,7 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
     cd ${GITHUB_REPO}
     git checkout staging
-    printf "%q" "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"- %s%n%b\n")"> ./commits
+    printf %q "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"- %s%n%b\n")"> ./commits
     git tag $(cat ../docker.tag)
     git push --tags
     git checkout master
