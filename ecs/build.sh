@@ -17,6 +17,7 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
     cd ${GITHUB_REPO}
     git checkout staging
+    git tag
     printf %q "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"- %s%n%b\n")"> ./commits
     cat ./commits
     git tag $(cat ../docker.tag)
