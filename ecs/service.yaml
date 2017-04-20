@@ -352,7 +352,7 @@ Resources:
   ALB500sAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: ECS Nodejs - 5XX Count
+      AlarmName: ECS Nodejs - 5XX Count ${EnvironmentName}
       EvaluationPeriods: '1'
       Statistic: Sum
       Threshold: '500'
@@ -373,7 +373,7 @@ Resources:
   HealthyHostAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: ECS Nodejs - Healthy Hosts
+      AlarmName: ECS Nodejs - Healthy Hosts ${EnvironmentName}
       EvaluationPeriods: '1'
       Statistic: Maximum
       Threshold: '1'
@@ -394,7 +394,7 @@ Resources:
   UnhealthyHostAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: ECS Nodejs - Unhealthy Hosts
+      AlarmName: ECS Nodejs - Unhealthy Hosts ${EnvironmentName}
       EvaluationPeriods: '5'
       Statistic: Maximum
       Threshold: '1'
@@ -415,7 +415,7 @@ Resources:
   LatencyAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: ECS Nodejs - Average Latency
+      AlarmName: ECS Nodejs - Average Latency ${EnvironmentName}
       EvaluationPeriods: '1'
       Statistic: Average
       Threshold: '2'
