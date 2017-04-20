@@ -28,8 +28,13 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
     "name": "%s","body": "%s",
     "draft": false,"prerelease": false}' $RELEASE_PLAN $RELEASE_PLAN "$(tr '\n' ' ' < commits)")
+    API_URI="https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}"
     echo $API_JSON
-    curl --data "$API_JSON" https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}
+    RELEASE_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null --data "$API_JSON" "$API_URI")
+    if [ RELEASE_STATUS != 200 ]; then
+        echo "Release Failed"
+        exit 1;
+    fi
 
 else
     echo "Entering Production Build"
