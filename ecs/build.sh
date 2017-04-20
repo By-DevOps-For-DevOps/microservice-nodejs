@@ -18,7 +18,7 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     cd ${GITHUB_REPO}
     git checkout staging
     git tag
-    printf "%q" "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"- %s%n%b\n")"> ./commits
+    echo "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"- %s%n%b\n")"> ./commits
     cat ./commits
     git tag $(cat ../docker.tag)
     git push --tags
@@ -27,7 +27,7 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     git push origin master
     API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
     "name": "%s","body": "%s",
-    "draft": false,"prerelease": false}' $RELEASE_PLAN $RELEASE_PLAN $RELEASE_PLAN $(cat ./commits))
+    "draft": false,"prerelease": false}' $RELEASE_PLAN $RELEASE_PLAN "$(tr '\n' ' ' < commits)")
     echo $API_JSON
     curl --data "$API_JSON" https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}
 
