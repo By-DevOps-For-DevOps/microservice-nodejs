@@ -18,7 +18,7 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     cd ${GITHUB_REPO}
     git checkout staging
     git tag
-    echo "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"- %s%n%b\\n")"> ./commits
+    echo "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"- %s%n%b<br>")"> ./commits
     cat ./commits
     git tag $(cat ../docker.tag)
     git push --tags
@@ -31,7 +31,7 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     API_URI="https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}"
     echo $API_JSON
     RELEASE_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null --data "$API_JSON" "$API_URI")
-    if [ RELEASE_STATUS != 201 ]; then
+    if [ $RELEASE_STATUS != 201 ]; then
         echo "Release Failed with status:${RELEASE_STATUS}"
         exit 1;
     fi
