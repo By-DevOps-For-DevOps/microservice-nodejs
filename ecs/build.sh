@@ -31,8 +31,8 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     API_URI="https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}"
     echo $API_JSON
     RELEASE_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null --data "$API_JSON" "$API_URI")
-    if [ RELEASE_STATUS != 200 ]; then
-        echo "Release Failed"
+    if [ RELEASE_STATUS != 201 ]; then
+        echo "Release Failed with status:${RELEASE_STATUS}"
         exit 1;
     fi
 
