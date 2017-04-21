@@ -4,11 +4,11 @@ if [ "$DEPLOY_ENVIRONMENT" = "development" ] || \
    [ "$DEPLOY_ENVIRONMENT" = "feature" ] || \
    [ "$DEPLOY_ENVIRONMENT" = "hotfix" ]; then    
     echo -n "$TAG_NAME-$BUILD_SCOPE-$(cat ./build.id)" > docker.tag
-    docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
+    docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$ECS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
     TAG=$(cat docker.tag)
 elif [ "$DEPLOY_ENVIRONMENT" = "staging" ] ; then
     echo -n "${RELEASE_PLAN}-$BUILD_SCOPE-$(cat ./build.id)" > docker.tag
-    docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
+    docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$ECS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
     TAG=$(cat docker.tag)
 elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     GITHUB_TOKEN=${GITHUB_TOKEN}
@@ -54,7 +54,7 @@ fi
 sed -i "s@TAG@$TAG@g" ecs/service.yaml
 sed -i "s#EMAIL#$EMAIL#g" ecs/service.yaml
 sed -i "s@ENVIRONMENT_NAME@$ENVIRONMENT_NAME@g" ecs/service.yaml
-sed -i "s@DOCKER_IMAGE_URI@$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$TAG@g" ecs/service.yaml
+sed -i "s@DOCKER_IMAGE_URI@$AWS_ACCOUNT_ID.dkr.ecr.$ECS_REGION.amazonaws.com/$ECR_NAME:$TAG@g" ecs/service.yaml
 sed -i "s@BUILD_SCOPE@$BUILD_SCOPE@g" ecs/service.yaml
 sed -i "s@ECS_REPOSITORY_NAME@$ECR_NAME@g" ecs/service.yaml
 sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
