@@ -60,9 +60,9 @@ sed -i "s@ECS_REPOSITORY_NAME@$ECR_NAME@g" ecs/service.yaml
 sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
 
 
-if [ ! -z $ENV_VARIABLES_S3_BUCKET ] && [ ! -z $ENV_VARIABLES_S3_KEY ]; then
-    echo "Downloading ${ENV_VARIABLES_S3_KEY} form  ${ENV_VARIABLES_S3_BUCKET} ..."
-    aws s3 cp s3://${ENV_VARIABLES_S3_BUCKET}/${ENV_VARIABLES_S3_KEY} env.yaml
+if [ ! -z $ENV_VARIABLES_S3_PATH ] ; then
+    echo "Downloading ${ENV_VARIABLES_S3_PATH}"
+    aws s3 cp s3://${ENV_VARIABLES_S3_PATH}
     if [ $? == 1 ]; then
         exit 1;
     fi
