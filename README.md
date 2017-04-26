@@ -41,4 +41,4 @@ Eg:
           Value: 6.0
 ```
 
-(Example file)[./code_build_env.yaml]
+[Example file](./code_build_env.yaml)
