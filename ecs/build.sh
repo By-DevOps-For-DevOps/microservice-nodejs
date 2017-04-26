@@ -4,11 +4,11 @@ if [ "$DEPLOY_ENVIRONMENT" = "development" ] || \
    [ "$DEPLOY_ENVIRONMENT" = "feature" ] || \
    [ "$DEPLOY_ENVIRONMENT" = "hotfix" ]; then    
     echo -n "$TAG_NAME-$BUILD_SCOPE-$(cat ./build.id)" > docker.tag
-    docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
+    docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$ECS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
     TAG=$(cat docker.tag)
 elif [ "$DEPLOY_ENVIRONMENT" = "staging" ] ; then
     echo -n "${RELEASE_PLAN}-$BUILD_SCOPE-$(cat ./build.id)" > docker.tag
-    docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
+    docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$ECS_REGION.amazonaws.com/$ECR_NAME:$(cat docker.tag) .
     TAG=$(cat docker.tag)
 elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     GITHUB_TOKEN=${GITHUB_TOKEN}
@@ -18,7 +18,7 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     cd ${GITHUB_REPO}
     git checkout staging
     git tag
-    echo "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"- %s%n%b<br>")"> ./commits
+    echo "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"<br>- %s%n%b<br>")"> ./commits
     cat ./commits
     git tag $(cat ../docker.tag)
     git push --tags
@@ -42,7 +42,7 @@ else
     git clone https://${GITHUB_TOKEN}@github.com/${GITHUB_USER}/${GITHUB_REPO}
     cd ${GITHUB_REPO}
     git checkout staging
-    STAGE_TAG=$(git describe --tags --abbrev=0)
+    STAGE_TAG=$(git describe --tags --abbrev=0 --match "*candidate*")
     TAG=$(curl https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases/latest?access_token=${GITHUB_TOKEN} | grep tag_name | grep -Eo "([0-9]\.*)+")
     echo $STAGE_TAG > ../stage.tag
     echo $TAG > ../prod.tag
@@ -54,15 +54,15 @@ fi
 sed -i "s@TAG@$TAG@g" ecs/service.yaml
 sed -i "s#EMAIL#$EMAIL#g" ecs/service.yaml
 sed -i "s@ENVIRONMENT_NAME@$ENVIRONMENT_NAME@g" ecs/service.yaml
-sed -i "s@DOCKER_IMAGE_URI@$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_NAME:$TAG@g" ecs/service.yaml
+sed -i "s@DOCKER_IMAGE_URI@$AWS_ACCOUNT_ID.dkr.ecr.$ECS_REGION.amazonaws.com/$ECR_NAME:$TAG@g" ecs/service.yaml
 sed -i "s@BUILD_SCOPE@$BUILD_SCOPE@g" ecs/service.yaml
 sed -i "s@ECS_REPOSITORY_NAME@$ECR_NAME@g" ecs/service.yaml
 sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
 
 
-if [ ! -z $ENV_VARIABLES_S3_BUCKET ] && [ ! -z $ENV_VARIABLES_S3_KEY ]; then
-    echo "Downloading ${ENV_VARIABLES_S3_KEY} form  ${ENV_VARIABLES_S3_BUCKET} ..."
-    aws s3 cp s3://${ENV_VARIABLES_S3_BUCKET}/${ENV_VARIABLES_S3_KEY} env.yaml
+if [ ! -z $ENV_VARIABLES_S3_PATH ] ; then
+    echo "Downloading ${ENV_VARIABLES_S3_PATH}"
+    aws s3 cp s3://${ENV_VARIABLES_S3_PATH}
     if [ $? == 1 ]; then
         exit 1;
     fi
