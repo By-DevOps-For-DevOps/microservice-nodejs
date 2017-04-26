@@ -62,7 +62,7 @@ sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
 
 if [ ! -z $ENV_VARIABLES_S3_PATH ] ; then
     echo "Downloading ${ENV_VARIABLES_S3_PATH}"
-    aws s3 cp s3://${ENV_VARIABLES_S3_PATH}
+    aws s3 cp s3://${ENV_VARIABLES_S3_PATH} env.yaml
     if [ $? == 1 ]; then
         exit 1;
     fi
