@@ -1,6 +1,6 @@
 # ngp-nodejs
 
-This is a sample nodejs application that can be run as a docker container. 
+This is a sample nodejs application that can be run as a docker container.  
 It runs with https://www.npmjs.com/package/restify.
 
 ### Steps to run the application
