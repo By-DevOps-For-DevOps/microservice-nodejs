@@ -18,7 +18,7 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     cd ${GITHUB_REPO}
     git checkout staging
     git tag
-    echo "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"<br>- %s%n%b<br>")"> ./commits
+    echo "$(git log `git describe --tags --abbrev=0`..HEAD --pretty=format:"<br>- %s%b<br>")" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/ /g' | sed "s/\"/'/g" > ./commits
     cat ./commits
     git tag $(cat ../docker.tag)
     git push --tags
@@ -26,16 +26,16 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
     git merge staging
     git push origin master
     API_JSON=$(printf '{"tag_name": "%s","target_commitish": "master",
-    "name": "%s","body": "%s",
-    "draft": false,"prerelease": false}' $RELEASE_PLAN $RELEASE_PLAN "$(tr '\n' ' ' < commits)")
-    API_URI="https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}"
+    "name": "%s - (Release Notes)","body": "%s",
+    "draft": false,"prerelease": false}' $RELEASE_PLAN $RELEASE_PLAN "$(cat commits)")
     echo $API_JSON
+    API_URI="https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?access_token=${GITHUB_TOKEN}"
+    echo $API_URI
     RELEASE_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null --data "$API_JSON" "$API_URI")
     if [ $RELEASE_STATUS != 201 ]; then
         echo "Release Failed with status:${RELEASE_STATUS}"
         exit 1;
     fi
-
 else
     echo "Entering Production Build"
     GITHUB_TOKEN=${GITHUB_TOKEN}
