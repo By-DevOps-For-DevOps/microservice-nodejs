@@ -38,3 +38,10 @@ jspm_packages
 
 # IDE
 .idea/
+
+# Emacs
+*~
+
+# Security
+.pem
+.envrc
