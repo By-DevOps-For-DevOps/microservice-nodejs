@@ -221,10 +221,10 @@ Resources:
       RoleARN: !GetAtt 'ScalableTargetRole.Arn'
       ScalableDimension: 'ecs:service:DesiredCount'
       ServiceNamespace: ecs
-  ScaleUpPolicy:
+  CpuScaleUpPolicy:
     Type: 'AWS::ApplicationAutoScaling::ScalingPolicy'
     Properties:
-      PolicyName: !Sub '${AWS::StackName}-scale-up'
+      PolicyName: !Sub '${AWS::StackName}-cpu-scale-up'
       PolicyType: StepScaling
       ScalingTargetId: !Ref ScalableTarget
       StepScalingPolicyConfiguration: 
@@ -234,10 +234,10 @@ Resources:
         StepAdjustments:
         - MetricIntervalLowerBound: 0
           ScalingAdjustment: 25
-  ScaleDownPolicy:
+  MemScaleUpPolicy:
     Type: 'AWS::ApplicationAutoScaling::ScalingPolicy'
     Properties:
-      PolicyName: !Sub '${AWS::StackName}-scale-down'
+      PolicyName: !Sub '${AWS::StackName}-mem-scale-up'
       PolicyType: StepScaling
       ScalingTargetId: !Ref ScalableTarget
       StepScalingPolicyConfiguration: 
@@ -246,6 +246,32 @@ Resources:
         MinAdjustmentMagnitude: 1
         StepAdjustments:
         - MetricIntervalLowerBound: 0
+          ScalingAdjustment: 25
+  CpuScaleDownPolicy:
+    Type: 'AWS::ApplicationAutoScaling::ScalingPolicy'
+    Properties:
+      PolicyName: !Sub '${AWS::StackName}-cpu-scale-down'
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref ScalableTarget
+      StepScalingPolicyConfiguration: 
+        AdjustmentType: PercentChangeInCapacity
+        Cooldown: 300
+        MinAdjustmentMagnitude: 1
+        StepAdjustments:
+        - MetricIntervalUpperBound: 0
+          ScalingAdjustment: -25
+  MemScaleDownPolicy:
+    Type: 'AWS::ApplicationAutoScaling::ScalingPolicy'
+    Properties:
+      PolicyName: !Sub '${AWS::StackName}-mem-scale-down'
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref ScalableTarget
+      StepScalingPolicyConfiguration: 
+        AdjustmentType: PercentChangeInCapacity
+        Cooldown: 300
+        MinAdjustmentMagnitude: 1
+        StepAdjustments:
+        - MetricIntervalUpperBound: 0
           ScalingAdjustment: -25
   CPUUtilizationHighAlarm:
     Type: 'AWS::CloudWatch::Alarm'
@@ -265,7 +291,7 @@ Resources:
       EvaluationPeriods: 1
       Threshold: 80
       AlarmActions:
-      - !Ref ScaleUpPolicy
+      - !Ref CpuScaleUpPolicy
   CPUUtilizationLowAlarm:
     Type: 'AWS::CloudWatch::Alarm'
     Properties:
@@ -284,7 +310,7 @@ Resources:
       EvaluationPeriods: 1
       Threshold: 20
       AlarmActions:
-      - !Ref ScaleDownPolicy
+      - !Ref CpuScaleDownPolicy
   MemoryUtilizationHighAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -302,7 +328,7 @@ Resources:
       Period: 60
       EvaluationPeriods: '1' 
       Threshold: 80
-      AlarmActions: [!Ref 'ScaleUpPolicy']
+      AlarmActions: [!Ref 'MemScaleUpPolicy']
   MemoryUtilizationLowAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -320,7 +346,7 @@ Resources:
       Period: 60
       EvaluationPeriods: 1 
       Threshold: 20
-      AlarmActions: [!Ref 'ScaleDownPolicy']
+      AlarmActions: [!Ref 'MemScaleDownPolicy']
 
   # Filters all logs for the word Error
   AppErrorsLogsFilter:
