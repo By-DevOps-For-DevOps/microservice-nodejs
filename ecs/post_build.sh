@@ -12,7 +12,6 @@ elif [ "$DEPLOY_ENVIRONMENT" = "production" ]; then
     docker tag ${SOURCE_AWS_ACCOUNT_ID}.dkr.ecr.${SOURCE_AWS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./stage.tag) ${AWS_ACCOUNT_ID}.dkr.ecr.${ECS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./prod.tag)
     $(aws ecr get-login --registry-ids "${AWS_ACCOUNT_ID}" --region $ECS_REGION)
     docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${ECS_REGION}.amazonaws.com/${ECR_NAME}:$(cat ./prod.tag)
-
 else
     echo "NO POST BUILD ACTIONS IN RELEASE"
 fi

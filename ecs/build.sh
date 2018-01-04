@@ -36,6 +36,7 @@ elif [ "$DEPLOY_ENVIRONMENT" = "release" ] ; then
         echo "Release Failed with status:${RELEASE_STATUS}"
         exit 1;
     fi
+    cd ..
 else
     echo "Entering Production Build"
     GITHUB_TOKEN=${GITHUB_TOKEN}
@@ -51,22 +52,17 @@ else
     cd ..
 fi
 
-sed -i "s@TAG@$TAG@g" ecs/service.yaml
-sed -i "s#EMAIL#$EMAIL#g" ecs/service.yaml
-sed -i "s@ENVIRONMENT_NAME@$ENVIRONMENT_NAME@g" ecs/service.yaml
-sed -i "s@DOCKER_IMAGE_URI@$AWS_ACCOUNT_ID.dkr.ecr.$ECS_REGION.amazonaws.com/$ECR_NAME:$TAG@g" ecs/service.yaml
-sed -i "s@BUILD_SCOPE@$BUILD_SCOPE@g" ecs/service.yaml
-sed -i "s@ECS_REPOSITORY_NAME@$ECR_NAME@g" ecs/service.yaml
-sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
+if [ "$DEPLOY_ENVIRONMENT" != "release" ] ; then
+    sed -i "s@TAG@$TAG@g" ecs/service.yaml
+    sed -i "s#EMAIL#$EMAIL#g" ecs/service.yaml
+    sed -i "s@ENVIRONMENT_NAME@$ENVIRONMENT_NAME@g" ecs/service.yaml
+    sed -i "s@DOCKER_IMAGE_URI@$AWS_ACCOUNT_ID.dkr.ecr.$ECS_REGION.amazonaws.com/$ECR_NAME:$TAG@g" ecs/service.yaml
+    sed -i "s@BUILD_SCOPE@$BUILD_SCOPE@g" ecs/service.yaml
+    sed -i "s@ECS_REPOSITORY_NAME@$ECR_NAME@g" ecs/service.yaml
+    sed -i "s@RELEASE_VERSION@$RELEASE_VERSION@g" ecs/service.yaml
 
-
-if [ ! -z $ENV_VARIABLES_S3_PATH ] ; then
-    echo "Downloading ${ENV_VARIABLES_S3_PATH}"
-    aws s3 cp s3://${ENV_VARIABLES_S3_PATH} env.yaml
-    if [ $? == 1 ]; then
-        exit 1;
-    fi
+    . ecs/params.sh
     perl -i -pe 's/ENVIRONMENT_VARIABLES/`cat env.yaml`/e' ecs/service.yaml
-else
-    perl -i -pe 's/ENVIRONMENT_VARIABLES//e' ecs/service.yaml
+    # Remove the env yaml (not to persist secrets)
+    rm env.yaml
 fi
