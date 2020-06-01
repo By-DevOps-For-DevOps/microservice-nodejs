@@ -14,7 +14,7 @@ The application returns a ```{ status: 'ok'}``` at ```localhost:9000/health```
 
 ### Notes
 
-These are insfrastructure specific information for the application.
+These are infrastructure specific information for the application.
 
 | Question  | Answer |
 | ------------- | ------------- |

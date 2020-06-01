@@ -3,7 +3,7 @@ version: 0.2
 phases:
   build:
     commands:
-      - . ./ecs/build.sh
+      - . ./ecs.sh
 
   post_build:
     commands:
@@ -11,7 +11,7 @@ phases:
 
 artifacts:
   files:
+    - ecs.sh
     - ecs/*
     - buildspec.yml
     - docker.tag
-    
