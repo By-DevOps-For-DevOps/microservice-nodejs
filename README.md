@@ -40,7 +40,7 @@ aws ssm put-parameter --name ngp-v301-dev-stag.ZZZ --value "ZZZ" --type SecureSt
 Place your parameters keys (only keys, not actual secrets) in `.env.sample`:
 
 ```bash
-➜  ngp-node-server git:(kamol/paramstore) ✗ cat .env.sample
+cat .env.sample
 XXX=
 ZZZ=
 YYY=
