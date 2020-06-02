@@ -1,4 +1,4 @@
-FROM node:current-alpine
+FROM node:14
 COPY ./ /opt/ngp-nodejs
 WORKDIR /opt/ngp-nodejs/
 RUN npm install
