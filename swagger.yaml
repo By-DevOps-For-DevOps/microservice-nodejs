@@ -1,0 +1,77 @@
+swagger: '2.0'
+info:
+  title: OneKyat Region API
+  version: '1.0'
+schemes:
+  - https
+produces:
+  - application/json
+host: api.{{DOMAIN_NAME}}
+basePath: /regions
+securityDefinitions:
+  api_key:
+    type: apiKey
+    name: x-api-key
+    in: header
+x-amazon-apigateway-request-validators:
+  full:
+    validateRequestBody: true
+    validateRequestParameters: true
+  body-only:
+    validateRequestBody: true
+    validateRequestParameters: false
+x-amazon-apigateway-request-validator: full
+paths:
+  /health:
+    options:
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "200 response"
+          schema:
+            $ref: "#/definitions/Empty"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+            Access-Control-Allow-Methods:
+              type: "string"
+            Access-Control-Allow-Headers:
+              type: "string"
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Methods: "'GET,OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'https://apidoc.{{DOMAIN_NAME}}'"
+        passthroughBehavior: "when_no_match"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        type: "mock"
+    get:
+      summary: Health Check
+      description: Health check.
+      responses:
+        '200':
+          description: success
+          headers:
+            Access-Control-Allow-Origin:
+              type: string
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        type: http
+        uri: https://{{APP_NAME}}.{{DOMAIN_NAME}}/health
+        responses:
+          default:
+            statusCode: '200'
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'https://apidoc.{{DOMAIN_NAME}}'"
+
+definitions:
+  Empty:
+    type: object
+    title: Empty Schema
