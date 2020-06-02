@@ -4,7 +4,9 @@ var restify = require('restify');
 const response = {
     status: 'ok'
 }
-var server = restify.createServer();
+var server = restify.createServer({
+  name: 'ngp-nodejs',
+});
 
 AWSXRayRestify.enable(server, process.env.XRAY_NAME_NODEJS || 'nodejs');
 server.get('/health', function (req, res, next) {
