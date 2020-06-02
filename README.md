@@ -30,16 +30,8 @@ These are insfrastructure specific information for the application.
 
 
 ### App specific environment variables
-App specific environment variables can be pass to codepipeliene by specifying the s3 bucket and file name which contain the environment variables.
-- First line should be a newline
-- Variables should be in key value format
-- Keep the tab spaces same as example file
-Eg:
+App specific environment variables can be pass to codepipeliene by specifying environment variables in `.env.sample`.
+You will need to add those environment variables in AWS Parameter Store in advance:
+```bash
+$ aws ssm put-parameter --name ngp-v303-app-stage.XRAY_NAME_NODEJS --value "nodejs" --type SecureString --overwrite
 ```
-        
-        Environment:
-        - Name: NODE_ENV
-          Value: 6.0
-```
-
-[Example file](./code_build_env.yaml)

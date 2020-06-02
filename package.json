@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/microservices-today/ngp-nodejs#readme",
   "dependencies": {
-    "restify": "^4.3.0"
+    "aws-xray-sdk-core": "^3.0.1",
+    "aws-xray-sdk-restify": "^3.0.1",
+    "restify": "^8.5.1"
   }
 }
