@@ -7,7 +7,7 @@ phases:
       nodejs: 10
   build:
     commands:
-      - . ./ecs/build.sh
+      - . ./ecs.sh
 
   post_build:
     commands:
@@ -15,7 +15,7 @@ phases:
 
 artifacts:
   files:
+    - ecs.sh
     - ecs/*
     - buildspec.yml
     - docker.tag
-    
