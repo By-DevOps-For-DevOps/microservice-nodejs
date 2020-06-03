@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:carbon
 COPY ./ /opt/ngp-nodejs
 WORKDIR /opt/ngp-nodejs/
 RUN npm install
