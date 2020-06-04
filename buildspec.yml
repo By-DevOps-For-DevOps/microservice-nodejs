@@ -4,7 +4,6 @@ phases:
   install:
     runtime-versions:
       docker: 19
-      nodejs: 10
   build:
     commands:
       - . ./ecs.sh
