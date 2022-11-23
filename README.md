@@ -1,12 +1,12 @@
-# ngp-nodejs
+# microservice-nodejs
 
 This is a sample nodejs application that can be run as a docker container.
 It runs with [restify](https://www.npmjs.com/package/restify).
 
 ## Steps to run the application
 
-1. ```docker build -t ngp-nodejs .```
-1. ```docker run -d -p 9000:9000 ngp-nodejs```
+1. ```docker build -t microservice-nodejs .```
+1. ```docker run -d -p 9000:9000 microservice-nodejs```
 
 ## Health Check
 
@@ -32,9 +32,9 @@ These are infrastructure specific information for the application.
 User AWS [parameter store](https://aws.amazon.com/ec2/systems-manager/parameter-store/)
 
 ```bash
-aws ssm put-parameter --name ngp-v301-dev-stag.XXX --value "XXX" --type SecureString
-aws ssm put-parameter --name ngp-v301-dev-stag.YYY --value "YYY" --type SecureString
-aws ssm put-parameter --name ngp-v301-dev-stag.ZZZ --value "ZZZ" --type SecureString
+aws ssm put-parameter --name /v305-Dev/XXX --value "XXX" --type SecureString
+aws ssm put-parameter --name /v305-Dev/YYY --value "YYY" --type SecureString
+aws ssm put-parameter --name /v305-Dev/ZZZ --value "ZZZ" --type SecureString
 ```
 
 Place your parameters keys (only keys, not actual secrets) in `.env.sample`:
